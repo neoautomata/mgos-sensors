@@ -1,3 +1,19 @@
+/*
+   Copyright 2017 neoautomata
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
+
 #include "common/cs_dbg.h"
 #include "common/json_utils.h"
 #include "common/platform.h"
@@ -16,7 +32,6 @@ dht_data *dht1;
 
 static void* NO_MOTION = 0;
 static void* MOTION_DETECTED = 1;
-
 
 static void dht_handler(struct mg_rpc_request_info *ri, void *cb_arg,
                         struct mg_rpc_frame_info *fi, struct mg_str args) {
@@ -144,6 +159,5 @@ enum mgos_app_init_result mgos_app_init(void) {
 		mgos_gpio_enable_int(cfg->motion1.pin);
 	}
 
-	mgos_wifi_add_on_change_cb(on_wifi_event, 0);
 	return MGOS_APP_INIT_SUCCESS;
 }
