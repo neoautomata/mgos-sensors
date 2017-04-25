@@ -17,17 +17,6 @@ dht_data *dht1;
 static void* NO_MOTION = 0;
 static void* MOTION_DETECTED = 1;
 
-static void on_wifi_event(enum mgos_wifi_status event, void *data) {
-	(void) data;
-	switch (event) {
-		case MGOS_WIFI_IP_ACQUIRED:
-			break;
-		case MGOS_WIFI_CONNECTED:
-			break;
-		case MGOS_WIFI_DISCONNECTED:
-			break;
-	}
-}
 
 static void dht_handler(struct mg_rpc_request_info *ri, void *cb_arg,
                         struct mg_rpc_frame_info *fi, struct mg_str args) {
