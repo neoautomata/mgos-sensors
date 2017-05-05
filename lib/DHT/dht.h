@@ -40,7 +40,7 @@ inline unsigned int readByte(int pin, int* max) {
 static dht_data* Read_DHT(int pin, bool farenheit) {
 	int data[5] = { 0, 0, 0, 0, 0 };
 	int max = 100000;
-	dht_data *res = malloc(sizeof(dht_data) + 65); // max err string is 64 chars
+	dht_data *res = (dht_data*)malloc(sizeof(dht_data) + 65); // max err string is 64 chars
 	memset(res, 0, sizeof(dht_data) + 65);
 	assert(res != 0);
  

@@ -34,6 +34,15 @@ extern "C" {
 #include "lib/DHT/dht.h"
 dht_data *dht1;
 
+// The following is a hack: https://github.com/cesanta/mongoose-os/issues/245
+#undef JSON_OUT_MBUF
+#define JSON_OUT_MBUF(mbuf_addr)             \
+  {                                          \
+    mg_json_printer_mbuf, {                  \
+      { (char *)mbuf_addr, 0, 0 } \
+    }                                        \
+  }
+
 static void* NO_MOTION = (void*)0;
 static void* MOTION_DETECTED = (void*)1;
 
@@ -60,7 +69,7 @@ static void dht_handler(struct mg_rpc_request_info *ri, void *cb_arg,
 	(void) fi;
 }
 
-static void dht_read() {
+static void dht_read(void* param) {
 	struct sys_config *cfg = get_cfg();
 	struct mbuf fb;
 	struct json_out out = JSON_OUT_MBUF(&fb);
@@ -81,6 +90,7 @@ static void dht_read() {
 	}
 
 	mbuf_free(&fb);
+	(void) param;
 }
 
 static void light_handler(struct mg_rpc_request_info *ri, void *cb_arg,
@@ -101,7 +111,7 @@ static void light_handler(struct mg_rpc_request_info *ri, void *cb_arg,
 	(void) fi;
 }
 
-static void light_read() {
+static void light_read(void* param) {
 	struct sys_config *cfg = get_cfg();
 	struct mbuf fb;
 	struct json_out out = JSON_OUT_MBUF(&fb);
@@ -114,6 +124,7 @@ static void light_read() {
 		mgos_mqtt_pub(cfg->light1.mqtt_topic, fb.buf, fb.len, 0);
 
 	mbuf_free(&fb);
+	(void) param;
 }
 
 static void motion_interrupt(int pin, void *arg) {
