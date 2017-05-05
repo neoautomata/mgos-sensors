@@ -14,6 +14,10 @@
    limitations under the License.
 */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "common/cs_dbg.h"
 #include "common/json_utils.h"
 #include "common/platform.h"
@@ -30,8 +34,8 @@
 #include "lib/DHT/dht.h"
 dht_data *dht1;
 
-static void* NO_MOTION = 0;
-static void* MOTION_DETECTED = 1;
+static void* NO_MOTION = (void*)0;
+static void* MOTION_DETECTED = (void*)1;
 
 static void dht_handler(struct mg_rpc_request_info *ri, void *cb_arg,
                         struct mg_rpc_frame_info *fi, struct mg_str args) {
@@ -73,7 +77,7 @@ static void dht_read() {
 		json_printf(&out, "{device_id: %Q, device_type: sensors, sensor: dht1, temp: %.2f, humidity: %.2f}", cfg->device.id, dht1->temp, dht1->humidity);
 	}
 	if (strlen(cfg->dht1.mqtt_topic) > 0) {
-		mgos_mqtt_pub(cfg->dht1.mqtt_topic, fb.buf, fb.len);
+		mgos_mqtt_pub(cfg->dht1.mqtt_topic, fb.buf, fb.len, 0);
 	}
 
 	mbuf_free(&fb);
@@ -107,7 +111,7 @@ static void light_read() {
 	CONSOLE_LOG(LL_INFO, ("Read light - lvl: %d", lvl));
 	json_printf(&out, "{device_id: %Q, device_type: sensors, sensor: light1, level: %d}", cfg->device.id, lvl);
 	if (strlen(cfg->light1.mqtt_topic) > 0)
-		mgos_mqtt_pub(cfg->light1.mqtt_topic, fb.buf, fb.len);
+		mgos_mqtt_pub(cfg->light1.mqtt_topic, fb.buf, fb.len, 0);
 
 	mbuf_free(&fb);
 }
@@ -121,7 +125,7 @@ static void motion_interrupt(int pin, void *arg) {
 	CONSOLE_LOG(LL_INFO, ("Motion interrupt - motion detected: %d", arg == MOTION_DETECTED ? 1 : 0));
 	json_printf(&out, "{device_id: %Q, device_type: sensors, sensor: motion1, motion_detected: %d}", cfg->device.id, arg == MOTION_DETECTED ? 1 : 0);
 	if (strlen(cfg->light1.mqtt_topic) > 0)
-		mgos_mqtt_pub(cfg->light1.mqtt_topic, fb.buf, fb.len);
+		mgos_mqtt_pub(cfg->light1.mqtt_topic, fb.buf, fb.len, 0);
 
 	mbuf_free(&fb);
 	(void) pin;
@@ -161,3 +165,7 @@ enum mgos_app_init_result mgos_app_init(void) {
 
 	return MGOS_APP_INIT_SUCCESS;
 }
+
+#ifdef __cplusplus
+};
+#endif
