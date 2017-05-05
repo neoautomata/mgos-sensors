@@ -1,0 +1,38 @@
+[
+  ["http.enable", true],
+
+  ["mqtt.enable", true],
+  ["mqtt.server", "<mqtt_address>:<mqtt_port>"],
+  ["mqtt.user", "<mqtt_username>"], # optional
+  ["mqtt.pass", "<mqtt_password>"], # optional
+  ["mqtt.ssl_ca_cert", "mqtt_ca_cert.pem"], # optional: must be in the Mongoose OS fs/ dir
+
+  ["wifi.sta.enable", true],
+  ["wifi.sta.ssid", "<wifi_SSID>"],
+  ["wifi.sta.pass", "<wifi_PSK>"],
+
+  ["wifi.ap.enable", true], # this section optional. Spin up an AP for direct connection
+  ["wifi.ap.ssid", "<ap_SSID>"],
+  ["wifi.ap.pass", "<ap_PSK>"],
+  ["wifi.ap.hidden", false],
+  ["wifi.ap.channel", 6],
+
+  ["dht1", "o", {"title": "Settings for the first DHT temp and humidity sensor."}],
+  ["dht1.enable", "b", true, {"title": "If the sensor and RPC interface should be enabled."}],
+  ["dht1.pin", "i", 14, {"title": "The pin the sensor is attached to. Defaults to a WeMos D1 Mini pin D4 (GPIO2)."}], # 14 == D5
+  ["dht1.period", "i", 30000, {"title": "The period in ms that the sensor should be read. The RPC interface reports the last result."}],
+  ["dht1.farenheit", "b", true, {"title": "If the temperature should be reported in degrees farenheit."}],
+  ["dht1.mqtt_topic", "s", "sensors", {"title": "The MQTT topic where sensor readings should be published. Blank will skip publishing. The device id and sensor name is included in the message."}],
+
+  ["light1", "o", {"title": "Settings for an analog photoresistor light sensor."}],
+  ["light1.enable", "b", true, {"title": "If the sensor and RPC interface should be enabled."}],
+  ["light1.period", "i", 30000, {"title": "The period in ms that sensor should be read."}],
+  ["light1.mqtt_topic", "s", "sensors", {"title": "The MQTT topic where sensor readings should be published. Blank will skip publishing. The device id and sensor name is included in the message."}],
+
+  ["motion1", "o", {"title": "Settings for an passive infrared motion sensor."}],
+  ["motion1.enable", "b", true, {"title": "If the sensor and RPC interface should be enabled."}],
+  ["motion1.pin", "i", 12, {"title": "The pin where the motion sensor is connected."}], # 12 == D6
+  ["motion1.mqtt_topic", "s", "sensors", {"title": "The MQTT topic where sensor readings should be published. Blank will skip publishing. The device id and sensor name is included in the message."}],
+
+  ["device.id", "<unique_id_for_node>"],
+]
