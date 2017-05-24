@@ -31,8 +31,13 @@ extern "C" {
 #include "fw/src/mgos_rpc.h"
 #include "fw/src/mgos_wifi.h"
 
-#include "lib/DHT/dht.h"
-dht_data *dht1;
+#define ARDUINO 100
+#define F_CPU 80000000L
+#include "lib/Adafruit_DHT/DHT.h"
+#include "lib/Adafruit_DHT/DHT.cpp"
+DHT* dht1;
+float temp = NAN;
+float humidity = NAN;
 
 // The following is a hack: https://github.com/cesanta/mongoose-os/issues/245
 #undef JSON_OUT_MBUF
@@ -53,11 +58,11 @@ static void dht_handler(struct mg_rpc_request_info *ri, void *cb_arg,
 	struct sys_config *cfg = get_cfg();
 	mbuf_init(&fb, 192);
 
-	if(dht1->err != NULL) {
-		json_printf(&out, "{device_id: %Q, device_type: sensors, msg: %Q}", cfg->device.id, "last dht read failed");
+	if(isnan(humidity) || isnan(temp)) {
+		json_printf(&out, "{device_id: %Q, device_type: sensors, sensor: dht1, err: \"Read dht error - temp: %.2f; humidity: %.2f\"}", cfg->device.id, temp, humidity);
 		mg_rpc_send_errorf(ri, 500, "%.*s", fb.len, fb.buf);
 	} else {
-		json_printf(&out, "{device_id: %Q, device_type: sensors, temp: %.2f, humidity: %.2f}", cfg->device.id, dht1->temp, dht1->humidity);
+		json_printf(&out, "{device_id: %Q, device_type: sensors, temp: %.2f, humidity: %.2f}", cfg->device.id, temp, humidity);
 		mg_rpc_send_responsef(ri, "%.*s", fb.len, fb.buf);
 	}
 
@@ -75,15 +80,14 @@ static void dht_read(void* param) {
 	struct json_out out = JSON_OUT_MBUF(&fb);
 	mbuf_init(&fb, 192);
 
-	dht_data *tmp = Read_DHT(cfg->dht1.pin, cfg->dht1.farenheit);
-	free(dht1);
-	dht1 = tmp;
-	if(dht1->err != NULL) {
-		CONSOLE_LOG(LL_INFO, ("Read dht - err: %s", dht1->err));
-		json_printf(&out, "{device_id: %Q, device_type: sensors, sensor: dht1, err: %s}", cfg->device.id, dht1->err);
+	humidity = dht1->readHumidity();
+	temp = dht1->readTemperature(cfg->dht1.farenheit);
+	if (isnan(humidity) || isnan(temp)) {
+		CONSOLE_LOG(LL_INFO, ("Read dht1 error - temp: %.2f; humidity: %.2f", temp, humidity));
+		json_printf(&out, "{device_id: %Q, device_type: sensors, sensor: dht1, err: \"Read dht error - temp: %.2f; humidity: %.2f\"}", cfg->device.id, temp, humidity);
 	} else {
-		CONSOLE_LOG(LL_INFO, ("Read dht - temp: %.2f; humidity: %.2f", dht1->temp, dht1->humidity));
-		json_printf(&out, "{device_id: %Q, device_type: sensors, sensor: dht1, temp: %.2f, humidity: %.2f}", cfg->device.id, dht1->temp, dht1->humidity);
+		CONSOLE_LOG(LL_INFO, ("Read dht - temp: %.2f; humidity: %.2f", temp, humidity));
+		json_printf(&out, "{device_id: %Q, device_type: sensors, sensor: dht1, temp: %.2f, humidity: %.2f}", cfg->device.id, temp, humidity);
 	}
 	if (strlen(cfg->dht1.mqtt_topic) > 0) {
 		mgos_mqtt_pub(cfg->dht1.mqtt_topic, fb.buf, fb.len, 0);
@@ -149,6 +153,9 @@ enum mgos_app_init_result mgos_app_init(void) {
 	if (cfg->dht1.enable) {
 		CONSOLE_LOG(LL_INFO, ("DHT1 enabled: pin=%d, farenheit=%d, period=%dms, mqtt_topic=%s", cfg->dht1.pin, cfg->dht1.farenheit, cfg->dht1.period, cfg->dht1.mqtt_topic));
 
+		dht1 = new DHT(cfg->dht1.pin, 22);
+		dht1->begin();
+		
 		mgos_set_timer(cfg->dht1.period, 1, dht_read, NULL);
 
 		// Register the read handler.
